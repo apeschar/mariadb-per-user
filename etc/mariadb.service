@@ -1,0 +1,25 @@
+[Service]
+Type=notify
+ExecStartPre=/bin/bash -c 'exec mkdir -p $XDG_RUNTIME_DIR/mysqld'
+ExecStartPre=/bin/bash -c '[[ -d $HOME/var/lib/mysql ]] || \
+	exec /usr/bin/mysql_install_db \
+	--user=$USER \
+	--pid-file=$XDG_RUNTIME_DIR/mysqld/mysqld.pid \
+	--datadir=$HOME/var/lib/mysql \
+	--skip-log-error \
+	--skip-networking \
+	--socket=$XDG_RUNTIME_DIR/mysqld/mysqld.sock'
+ExecStart=/bin/bash -c 'exec /usr/sbin/mysqld \
+	--pid-file=$XDG_RUNTIME_DIR/mysqld/mysqld.pid \
+	--datadir=$HOME/var/lib/mysql \
+	--skip-log-error \
+	--skip-networking \
+	--socket=$XDG_RUNTIME_DIR/mysqld/mysqld.sock \
+	--innodb-buffer-pool-size=128M'
+SendSIGKILL=no
+Restart=on-abort
+RestartSec=5s
+LimitNOFILE=16384
+
+[Install]
+WantedBy=default.target

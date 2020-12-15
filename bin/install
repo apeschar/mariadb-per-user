@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if [[ $USER = root ]]; then
+	echo "You shouldn't run this as $USER. Aborting." >&2
+	exit 1
+fi
+
+SYSTEMD_CONFIG=$HOME/.config/systemd/user
+
+mkdir -p $SYSTEMD_CONFIG
+ln -sfn $PWD/etc/mariadb.service $SYSTEMD_CONFIG/mariadb.service
+systemctl --user daemon-reload
+systemctl --user enable mariadb
+
+printf '[client]\nuser=root\nsocket=%s\n' $XDG_RUNTIME_DIR/mysqld/mysqld.sock > $HOME/.my.cnf
+
+systemctl --user start mariadb
